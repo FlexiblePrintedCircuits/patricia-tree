@@ -4,6 +4,7 @@
 
 #define CHAR_SIZE 26
 
+// strメンバを追加
 struct Patricia
 {
     int isLeaf;
@@ -47,6 +48,7 @@ int position_to_split(char *str1, char *str2)
     return 0;
 }
 
+// ノードを分割する関数
 struct Patricia *divide_node(struct Patricia *root, char *str)
 {
     // もしもposition_to_splitがNULLなら、root->strの末端以降の文字列を新ノードとして追加する。rootのisLeafが1なら0にする。
@@ -138,7 +140,7 @@ void insert(struct Patricia *head, char *str)
         {
             if (can_divide(curr->children[i]->str, str)) // もしも子ノードの文字列と、新しく追加したい文字列が分割できるのであれば
             {
-                curr->children[i] = divide_node(curr->children[i], str);
+                curr->children[i] = divide_node(curr->children[i], str); // ノードを分割する
                 printf("***** End process of inserting \"%s\" node *****\n\n", str);
                 return;
             }
