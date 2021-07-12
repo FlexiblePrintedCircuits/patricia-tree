@@ -4,7 +4,6 @@
 
 #define CHAR_SIZE 26
 
-// strメンバを追加
 struct Patricia
 {
     int isLeaf;
@@ -48,7 +47,6 @@ int position_to_split(char *str1, char *str2)
     return 0;
 }
 
-// ノードを分割する関数
 struct Patricia *divide_node(struct Patricia *root, char *str)
 {
     // もしもposition_to_splitがNULLなら、root->strの末端以降の文字列を新ノードとして追加する。rootのisLeafが1なら0にする。
@@ -57,7 +55,7 @@ struct Patricia *divide_node(struct Patricia *root, char *str)
     {
         int len = strlen(root->str);
         int split_len = strlen(str) - len;
-        char substring[12];
+        char *substring = (char*)malloc(sizeof(char)*(split_len + 1));
         strncpy(substring, str + len, split_len);
         substring[split_len] = '\0';
 
@@ -83,14 +81,14 @@ struct Patricia *divide_node(struct Patricia *root, char *str)
         // 分割すべき場所を取得する
         int position = position_to_split(root->str, str);
 
-        // 再代入したり追加する、ノードの文字列用の変数
-        char new_root_str[CHAR_SIZE];
-        char first_childnode_str[CHAR_SIZE];
-        char second_childnode_str[CHAR_SIZE];
-
         // 分割すべき場所から、何文字目までをスライスするのかを計算する
         int first_childnode_split_position = strlen(root->str) - position;
         int second_childnode_split_position = strlen(str) - position;
+
+        // 再代入したり追加する、ノードの文字列用の変数
+        char *new_root_str = (char *)malloc(sizeof(char) * (position + 1));
+        char *first_childnode_str = (char *)malloc(sizeof(char) * (first_childnode_split_position + 1));
+        char *second_childnode_str = (char *)malloc(sizeof(char) * (second_childnode_split_position + 1));
 
         // 再代入したり追加する、ノードの文字列のスライス
         strncpy(new_root_str, root->str, position);
@@ -140,7 +138,7 @@ void insert(struct Patricia *head, char *str)
         {
             if (can_divide(curr->children[i]->str, str)) // もしも子ノードの文字列と、新しく追加したい文字列が分割できるのであれば
             {
-                curr->children[i] = divide_node(curr->children[i], str); // ノードを分割する
+                curr->children[i] = divide_node(curr->children[i], str);
                 printf("***** End process of inserting \"%s\" node *****\n\n", str);
                 return;
             }
@@ -156,27 +154,38 @@ void insert(struct Patricia *head, char *str)
     printf("***** End process of inserting \"%s\" node *****\n\n", str);
 }
 
-int search(struct Patricia *head, char *str)
+int search(struct Patricia *root, char *str)
 {
-    if (head == NULL)
-    {
-        return 0;
-    }
+    // strに、今いるノードの文字列(node_strとする)は存在するか確かめる。①
+    // もし存在して、かつisLeafが0なら次のノードにいき、①をする
+    // もし存在して、かつisLeafが1なら引数として1を返す。
+    // もし存在しないなら、引数として0を返す。
 
-    struct Patricia *curr = head;
-    while (*str)
+    struct Patricia *curr = root;
+    while (1)
     {
-        curr = curr->children[*str - 'a'];
+        curr = curr->children[str[0] - 'a'];
+        if (strstr(str, curr->str))
+        {
+            if ((curr->isLeaf) == 1)
+                return 1;
+            else if ((curr->isLeaf) == 0)
+            {
+                return ;
+            }
+
+            return 1;
+        }
 
         if (curr == NULL)
         {
             return 0;
         }
 
-        str++;
+        return 0;
     }
 
-    return curr->isLeaf;
+    return 1;
 }
 
 int hasChildren(struct Patricia *curr)
@@ -242,9 +251,11 @@ int main()
     struct Patricia *head = getNewPatriciaNode();
     insert(head, "car");
     insert(head, "card");
-    insert(head, "try");
-    insert(head, "tried");
     insert(head, "cat");
+    search(head, "card");
+    //insert(head, "try");
+    //insert(head, "tried");
+    //insert(head, "cat");
 
     return 0;
 
