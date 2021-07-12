@@ -154,6 +154,7 @@ void insert(struct Patricia *head, char *str)
     printf("***** End process of inserting \"%s\" node *****\n\n", str);
 }
 
+/*
 int search(struct Patricia *root, char *str)
 {
     // strに、今いるノードの文字列(node_strとする)は存在するか確かめる。①
@@ -187,6 +188,7 @@ int search(struct Patricia *root, char *str)
 
     return 1;
 }
+*/
 
 int hasChildren(struct Patricia *curr)
 {
@@ -201,6 +203,109 @@ int hasChildren(struct Patricia *curr)
     return 0;
 }
 
+int countChildren(struct Patricia *node)
+{
+    int count = 0;
+    for (int i=0; i<CHAR_SIZE; i++)
+    {
+        if (node->children[i])
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+void showChildren(struct Patricia *node)
+{
+    int count = 0;
+    for (int i=0; i<CHAR_SIZE; i++)
+    {
+        if (node->children[i])
+        {
+            printf("%s\n", node->children[i]->str);
+        }
+    }
+    return count;
+}
+
+// childrenを先頭から探索し、最初に見つけたノードを返す
+struct Patricit *getChild(struct Patricia *node) {
+    for (int i=0; i<CHAR_SIZE; i++)
+    {
+        if (node->children[i] != NULL)
+        {
+            return node->children[i];
+        }
+    }
+
+    return NULL;
+}
+
+// 子を削除し親にマージする
+void merge(struct Patricia *parent, struct Patricia *child)
+{
+    int parentLen = strlen(parent->str);
+    int childLen = strlen(child->str);
+    int newParentLen = parentLen + childLen;
+
+    parent->str = realloc(parent->str, newParentLen+1);
+    strcpy((parent->str)+parentLen, child->str);
+    parent->str[newParentLen]='\0';
+
+    free(child->str);
+    free(child);
+    printf("merged\n");
+}
+
+int deletion(struct Patricia *root, char *str)
+{
+    if (!hasChildren(root))
+    {
+        return 0;
+    }
+
+    struct Patricia *parent;
+    struct Patricia *current = root;
+    int position = 0;
+    int len;
+
+
+    // 削除対象のノードとその親を探索する
+    while(current != NULL)
+    {
+        if (strcmp(str+position, current->str) == 0) {
+            printf("matched\n");
+            if (hasChildren(current) && parent->isLeaf) {
+                merge(parent, current);
+            } else {
+                parent->children[*(current->str) - 'a'] = NULL;
+                free(current->str);
+                free(current);
+                printf("deleted\n");
+            }
+            break;
+        }
+
+        showChildren(current);
+
+        position += strlen(current->str);
+        if (strlen(str) <= position) return 0;
+
+        parent = current;
+        current = current->children[str[position] - 'a'];
+        if (current==NULL) return 0;
+    }
+
+    // 削除対象のノードの親ノードが他にひとつだけ子を持っている時、それらをマージする
+    if (parent != NULL && parent->isLeaf && countChildren(parent) == 1) {
+        merge(parent, getChild(parent));
+    }
+    return 1;
+}
+
+/*
 int deletion(struct Patricia **curr, char *str)
 {
     if (*curr == NULL)
@@ -216,6 +321,7 @@ int deletion(struct Patricia **curr, char *str)
         {
             if (!hasChildren(*curr))
             {
+                free((*curr)->str);
                 free(*curr);
                 (*curr) = NULL;
                 return 1;
@@ -245,6 +351,7 @@ int deletion(struct Patricia **curr, char *str)
 
     return 0;
 }
+*/
 
 int main()
 {
@@ -252,7 +359,7 @@ int main()
     insert(head, "car");
     insert(head, "card");
     insert(head, "cat");
-    search(head, "card");
+    //search(head, "card");
     //insert(head, "try");
     //insert(head, "tried");
     //insert(head, "cat");
