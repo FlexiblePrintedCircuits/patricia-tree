@@ -154,7 +154,6 @@ void insert(struct Patricia *head, char *str)
     printf("***** End process of inserting \"%s\" node *****\n\n", str);
 }
 
-/*
 int search(struct Patricia *root, char *str)
 {
     // strに、今いるノードの文字列(node_strとする)は存在するか確かめる。①
@@ -163,32 +162,33 @@ int search(struct Patricia *root, char *str)
     // もし存在しないなら、引数として0を返す。
 
     struct Patricia *curr = root;
+    curr = curr->children[str[0] - 'a'];
     while (1)
     {
-        curr = curr->children[str[0] - 'a'];
-        if (strstr(str, curr->str))
+        if (strstr(str, curr->str)) // ノードの文字列は、検索対象の文字列の部分文字列？
         {
-            if ((curr->isLeaf) == 1)
-                return 1;
-            else if ((curr->isLeaf) == 0)
+            if (curr->isLeaf)   // 葉か？
             {
-                return ;
+                return 1;   // 葉まで到達したのであれば検索対象の文字列は存在している
             }
-
-            return 1;
+            else if ((curr->isLeaf) == 0)   // 葉ではないか？
+            {
+                str = str + strlen(curr->str) + 1;  // 次の検索対象の文字を探す。cardならd
+                if (curr->children[str[0] - 'a'])   // NULLではないか？
+                {
+                    curr = curr->children[str[0] - 'a'];    // 次の検索対象の文字を代入
+                    continue;   // 次のループへ
+                }
+                else
+                    return 0;    // NULLだったら検索対象の文字列は存在しない
+            }
         }
-
-        if (curr == NULL)
-        {
-            return 0;
-        }
-
-        return 0;
+        else
+            return 0;    // ノードの文字列が検索対象の文字列の部分文字列でなければ、検索対象の文字列は存在しない
     }
 
-    return 1;
+    return 0;
 }
-*/
 
 int hasChildren(struct Patricia *curr)
 {
@@ -358,11 +358,24 @@ int main()
     struct Patricia *head = getNewPatriciaNode();
     insert(head, "car");
     insert(head, "card");
+    insert(head, "try");
+    insert(head, "tried");
     insert(head, "cat");
-    //search(head, "card");
-    //insert(head, "try");
-    //insert(head, "tried");
-    //insert(head, "cat");
+
+    if (search(head, "card"))
+        printf("card is exist\n");
+    else
+        printf("card is not exist\n");
+
+    if (search(head, "carp"))
+        printf("carp is exist\n");
+    else
+        printf("carp is not exist\n");
+
+    if (search(head, "trie"))
+        printf("trie is exist\n");
+    else
+        printf("trie is not exist\n");
 
     return 0;
 
